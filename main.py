@@ -1,6 +1,7 @@
 import time
 import threading
 import tkinter as tk
+from tkinter import messagebox
 from tkinter import ttk, PhotoImage
 import requests
 
@@ -24,6 +25,19 @@ class PomodoroTimer:
         self.tab2 = ttk.Frame(self.tabs, width=600, height=100)
         self.tab3 = ttk.Frame(self.tabs, width=600, height=100)
 
+        # ENTRY TO CHANGE POMODORO TIME
+        self.var = tk.StringVar()
+        self.var.trace_add('write', self.change_pomodoro_timer)
+
+        self.change_time_grid = ttk.Frame(self.tab1)
+        self.change_time_grid.pack(pady=10)
+
+        labelDir = tk.Label(self.change_time_grid, text='Enter Pomodoro duration (in minutes)', height=1)
+        labelDir.pack(side=tk.LEFT, padx=5)
+
+        self.change_time = ttk.Entry(self.change_time_grid, textvariable=self.var, width=2, font=("Arial", 20, "bold"))
+        self.change_time.pack(side=tk.LEFT)
+
         self.pomodoro_timer_label = ttk.Label(self.tab1, text='25:00', font=('Ubuntu', 48))
         self.pomodoro_timer_label.pack(pady=20)
 
@@ -36,8 +50,6 @@ class PomodoroTimer:
         self.checklist_label = ttk.Label(self.tab1, text='Checklist', font=('Ubuntu', 22))
         self.checklist_label.pack(pady=20)
 
-
-
         # Get and display Habitica tasks
         self.variable = tk.StringVar(self.root)
 
@@ -46,11 +58,6 @@ class PomodoroTimer:
         self.checklist_box = tk.Frame(self.tab1)
         self.display_checklist()
         self.checklist_box.pack()
-        # self.w = ttk.OptionMenu(self.root, self.variable, self.tasks_to_work_on[0], *self.tasks_to_work_on,
-        #                         command=self.callback)
-        # self.w.pack()
-
-
 
         self.tabs.add(self.tab1, text='Pomodoro')
         self.tabs.add(self.tab2, text='Short Break')
@@ -83,16 +90,23 @@ class PomodoroTimer:
         self.stopped = False
         self.running = False
 
+        self.root.attributes('-topmost', True)
         self.root.mainloop()
+
+    def change_pomodoro_timer(self, *args):
+        self.pomodoro_timer_label.config(text=f'{self.var.get()}:00')
+
+    def wrong_pomodoro_timer_value(self):
+        messagebox.showerror('Wrong Timer Value', 'Error: Please enter proper value (in minutes)')
 
     def display_checklist(self):
 
         for widget in self.checklist_box.winfo_children():
             widget.destroy()
 
-        values = [key for key in self.tasks_checklists if key.startswith('DAILY') ]
+        values = [key for key in self.tasks_checklists if key.startswith('DAILY')]
         if self.selected_task in values:
-        #value = self.selected_task[7:] if self.selected_task.startswith('DAILY') else self.selected_task[6:]
+            # value = self.selected_task[7:] if self.selected_task.startswith('DAILY') else self.selected_task[6:]
 
             for choice in self.tasks_checklists[self.selected_task]:
                 var = tk.StringVar(value=choice)
@@ -102,10 +116,15 @@ class PomodoroTimer:
                                     relief="flat", highlightthickness=0
                                     )
                 cb.pack(side="top", fill="x", anchor="w")
+
     def callback(self, selection):
         self.selected_task = self.variable.get()
 
         self.display_checklist()
+
+    def app_on_top(self):
+        self.root.lift()
+        self.root.after(2000, self.app_on_top)
 
     def get_habitica_tasks(self):
         self.tasks_to_work_on = []
@@ -148,59 +167,67 @@ class PomodoroTimer:
             self.running = True
 
     def start_timer(self):
+        self.change_time.configure(state='disabled')
         self.w.configure(state='disabled')
         self.stopped = False
         self.skipped = False
         timer_id = self.tabs.index(self.tabs.select()) + 1
 
-        if timer_id == 1:
-            full_seconds = 60 * 25
-            while full_seconds > 0 and not self.stopped:
-                minutes, seconds = divmod(full_seconds, 60)
-                self.pomodoro_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
-                self.root.update()
-                time.sleep(1)
-                full_seconds -= 1
-            if not self.stopped or self.skipped:
-                self.pomodoros += 1
-                self.pomodoro_counter_label.config(text=f'Pomodoros: {self.pomodoros}')
-                if self.pomodoros % 4 == 0:
-                    self.tabs.select(2)
+        try:
+            if timer_id == 1:
+                if self.change_time.get() == '0':
+                    raise ValueError
+                full_seconds = 60 * int(self.change_time.get())
+                while full_seconds > 0 and not self.stopped:
+                    minutes, seconds = divmod(full_seconds, 60)
+                    self.pomodoro_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
+                    self.root.update()
+                    time.sleep(1)
+                    full_seconds -= 1
+                if not self.stopped or self.skipped:
+                    self.pomodoros += 1
+                    self.pomodoro_counter_label.config(text=f'Pomodoros: {self.pomodoros}')
+                    if self.pomodoros % 4 == 0:
+                        self.tabs.select(2)
+                        self.start_timer()
+                    else:
+                        self.tabs.select(1)
                     self.start_timer()
-                else:
-                    self.tabs.select(1)
-                self.start_timer()
 
-        elif timer_id == 2:
-            full_seconds = 60 * 5
-            while full_seconds > 0 and not self.stopped:
-                minutes, seconds = divmod(full_seconds, 60)
-                self.short_break_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
-                self.root.update()
-                time.sleep(1)
-                full_seconds -= 1
-            if not self.stopped or self.skipped:
-                self.tabs.select(0)
-                self.start_timer()
-        elif timer_id == 3:
-            full_seconds = 60 * 15
-            while full_seconds > 0 and not self.stopped:
-                minutes, seconds = divmod(full_seconds, 60)
-                self.long_break_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
-                self.root.update()
-                time.sleep(1)
-                full_seconds -= 1
-            if not self.stopped or self.skipped:
-                self.tabs.select(0)
-                self.start_timer()
-        else:
-            print('Invalid timer ID')
+            elif timer_id == 2:
+                full_seconds = 60 * 5
+                while full_seconds > 0 and not self.stopped:
+                    minutes, seconds = divmod(full_seconds, 60)
+                    self.short_break_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
+                    self.root.update()
+                    time.sleep(1)
+                    full_seconds -= 1
+                if not self.stopped or self.skipped:
+                    self.tabs.select(0)
+                    self.start_timer()
+            elif timer_id == 3:
+                full_seconds = 60 * 15
+                while full_seconds > 0 and not self.stopped:
+                    minutes, seconds = divmod(full_seconds, 60)
+                    self.long_break_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
+                    self.root.update()
+                    time.sleep(1)
+                    full_seconds -= 1
+                if not self.stopped or self.skipped:
+                    self.tabs.select(0)
+                    self.start_timer()
+            else:
+                print('Invalid timer ID')
+        except:
+            self.wrong_pomodoro_timer_value()
+            self.reset_clock()
 
     def reset_clock(self):
+        self.change_time.configure(state='enabled')
         self.stopped = True
         self.skipped = False
         self.pomodoros = 0
-        self.pomodoro_timer_label.config(text='25:00')
+        self.pomodoro_timer_label.config(text=f'{self.change_time.get()}:00')
         self.short_break_timer_label.config(text='05:00')
         self.long_break_timer_label.config(text='15:00')
         self.pomodoro_counter_label.config(text='Pomodoros: 0')
@@ -210,7 +237,7 @@ class PomodoroTimer:
     def skip_clock(self):
         current_tab = self.tabs.index((self.tabs.select()))
         if current_tab == 0:
-            self.pomodoro_timer_label.config(text='25:00')
+            self.pomodoro_timer_label.config(text=f'{self.change_time.get()}:00')
         elif current_tab == 1:
             self.short_break_timer_label.config(text='05:00')
         elif current_tab == 2:
