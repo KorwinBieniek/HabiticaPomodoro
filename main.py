@@ -12,7 +12,13 @@ class PomodoroTimer:
         self.root = tk.Tk()
         self.root.geometry('600x600')
         self.root.title('Pomodoro Timer Habitica')
-        self.root.tk.call('wm', 'iconphoto', self.root._w, PhotoImage(file='pomodoro.png'))
+        self.root.tk.call('wm', 'iconphoto', self.root._w, PhotoImage(file='gui/pomodoro.png'))
+
+        self.start_button_img = PhotoImage(file='gui/start.png')
+        self.reset_button_img = PhotoImage(file='gui/reset.png')
+        self.skip_button_img = PhotoImage(file='gui/skip.png')
+        self.stop_button_img = PhotoImage(file='gui/stop.png')
+        self.finish_button_image = PhotoImage(file='gui/finish.png')
 
         self.s = ttk.Style()
         self.s.configure('TNotebook.Tab', font=('Ubuntu', 16))
@@ -27,6 +33,7 @@ class PomodoroTimer:
 
         # ENTRY TO CHANGE POMODORO TIME
         self.var = tk.StringVar()
+        self.var.set('25')
         self.var.trace_add('write', self.change_pomodoro_timer)
 
         self.change_time_grid = ttk.Frame(self.tab1)
@@ -70,16 +77,20 @@ class PomodoroTimer:
                                 command=self.callback)
         self.w.grid(row=0, column=0, columnspan=4, pady=10)
 
-        self.start_button = ttk.Button(self.grid_layout, text='Start', command=self.start_timer_thread)
+        self.start_button = tk.Button(self.grid_layout, text='Start', command=self.start_timer_thread,
+                                       image=self.start_button_img, bd=0)
         self.start_button.grid(row=1, column=0)
 
-        self.skip_button = ttk.Button(self.grid_layout, text='Skip', command=self.skip_clock)
+        self.skip_button = tk.Button(self.grid_layout, text='Skip', command=self.skip_clock,
+                                      image=self.skip_button_img, bd=0)
         self.skip_button.grid(row=1, column=1)
 
-        self.reset_button = ttk.Button(self.grid_layout, text='Reset', command=self.reset_clock)
+        self.reset_button = tk.Button(self.grid_layout, text='Reset', command=self.reset_clock,
+                                       image=self.reset_button_img, bd=0)
         self.reset_button.grid(row=1, column=2)
 
-        self.finish_button = ttk.Button(self.grid_layout, text='Finish', command=self.finish_task)
+        self.finish_button = tk.Button(self.grid_layout, text='Finish', command=self.finish_task,
+                                        image=self.finish_button_image, bd=0)
         self.finish_button.grid(row=1, column=3)
 
         self.pomodoro_counter_label = ttk.Label(self.grid_layout, text='Pomodoros: 0', font=('Ubuntu', 16))
