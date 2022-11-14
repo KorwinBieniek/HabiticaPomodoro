@@ -3,6 +3,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk, PhotoImage
+from PIL import ImageTk, Image
 import requests
 
 
@@ -27,9 +28,15 @@ class PomodoroTimer:
         self.tabs = ttk.Notebook(self.root)
         self.tabs.pack(fill='both', pady=10, expand=True)
 
-        self.tab1 = ttk.Frame(self.tabs, width=600, height=100)
-        self.tab2 = ttk.Frame(self.tabs, width=600, height=100)
-        self.tab3 = ttk.Frame(self.tabs, width=600, height=100)
+        frame_bg = ttk.Style()
+        frame_bg.configure('My.TFrame', background='#fefaff')
+        self.tab1 = ttk.Frame(self.tabs, width=600, height=100, style='My.TFrame')
+        self.tab2 = ttk.Frame(self.tabs, width=600, height=100, style='My.TFrame')
+        self.tab3 = ttk.Frame(self.tabs, width=600, height=100, style='My.TFrame')
+        main_clock_style = ttk.Style()
+        main_clock_style.configure("Purple.Label", foreground="black", background='#fefaff')
+        pomodoros_count_style = ttk.Style()
+        pomodoros_count_style.configure("Black.Label", foreground="black", background='#fefaff')
 
         # ENTRY TO CHANGE POMODORO TIME
         self.var = tk.StringVar()
@@ -40,27 +47,51 @@ class PomodoroTimer:
         self.change_time_grid.pack(pady=10)
 
         labelDir = tk.Label(self.change_time_grid, text='Enter Pomodoro duration (in minutes)', height=1)
-        labelDir.pack(side=tk.LEFT, padx=5)
+        # labelDir.pack(side=tk.LEFT, padx=5)
 
-        self.change_time = ttk.Entry(self.change_time_grid, textvariable=self.var, width=2, font=("Arial", 20, "bold"))
-        self.change_time.pack(side=tk.LEFT)
+        self.change_time = ttk.Entry(self.change_time_grid, textvariable=self.var, width=2, font=("Roboto", 20, "bold"))
+        # self.change_time.pack(side=tk.LEFT)
 
-        self.pomodoro_timer_label = ttk.Label(self.tab1, text='25:00', font=('Ubuntu', 48))
-        self.pomodoro_timer_label.pack(pady=20)
+        self.pomodoro_counter_label = ttk.Label(self.tab1, text='#0', font=('Roboto', 16), style="Black.Label")
+        # self.pomodoro_counter_label.place(x=280, y=10, relwidth=1.0, relheight=0.1)
+        self.pomodoro_counter_label.pack()
+        # self.pomodoro_counter_label.grid(row=2, column=0, columnspan=4, pady=10)
+        canvas = tk.Canvas(self.tab1, bg="white", width=250, height=250, highlightthickness=0, background='#fefaff')
+        canvas.pack()
+        # img = (Image.open("gui/rsz_circle_-_copy.png"))
 
-        self.short_break_timer_label = ttk.Label(self.tab2, text='05:00', font=('Ubuntu', 48))
+        # Resize the Image using resize method
+        # new_image = PhotoImage(file="gui/rsz_circle_-_copy.png")
+        image = Image.open("gui/circle2.png")
+        # The (450, 350) is (height, width)
+        #image = image.resize((250, 250), Image.ANTIALIAS)
+        my_img = ImageTk.PhotoImage(image)
+
+        label_frame = tk.LabelFrame(canvas, background='#fefaff', borderwidth=0)
+        self.pomodoro_timer_label = ttk.Label(label_frame, text='25:00', font=('Roboto', 48), style="Purple.Label")
+        #self.pomodoro_timer_label.place(x = 100, y = 50)
+        self.pomodoro_timer_label.pack()
+
+        # Add image to the Canvas Items
+        canvas.create_image(0, 0, anchor='nw', image=my_img)
+        canvas.create_window(125, 125, window=label_frame, anchor='center')
+
+        self.short_break_timer_label = ttk.Label(self.tab2, text='05:00', font=('Roboto', 48))
         self.short_break_timer_label.pack(pady=20)
 
-        self.long_break_timer_label = ttk.Label(self.tab3, text='15:00', font=('Ubuntu', 48))
+        self.long_break_timer_label = ttk.Label(self.tab3, text='15:00', font=('Roboto', 48))
         self.long_break_timer_label.pack(pady=20)
-
-        self.checklist_label = ttk.Label(self.tab1, text='Checklist', font=('Ubuntu', 22))
-        self.checklist_label.pack(pady=20)
 
         # Get and display Habitica tasks
         self.variable = tk.StringVar(self.root)
 
         self.get_habitica_tasks()
+
+        self.w = ttk.OptionMenu(self.tab1, self.variable, self.tasks_to_work_on[0], *self.tasks_to_work_on,
+                                command=self.callback, style='my.TMenubutton')
+        option_menu_style = ttk.Style()
+        option_menu_style.configure('my.TMenubutton', font=('Roboto', 22), background='#fefaff')
+        self.w.pack(pady=20)
 
         self.checklist_box = tk.Frame(self.tab1)
         self.display_checklist()
@@ -73,28 +104,21 @@ class PomodoroTimer:
         self.grid_layout = ttk.Frame(self.root)
         self.grid_layout.pack(pady=10)
 
-        self.w = ttk.OptionMenu(self.grid_layout, self.variable, self.tasks_to_work_on[0], *self.tasks_to_work_on,
-                                command=self.callback)
-        self.w.grid(row=0, column=0, columnspan=4, pady=10)
-
         self.start_button = tk.Button(self.grid_layout, text='Start', command=self.start_timer_thread,
-                                       image=self.start_button_img, bd=0)
+                                      image=self.start_button_img, bd=0)
         self.start_button.grid(row=1, column=0)
 
         self.skip_button = tk.Button(self.grid_layout, text='Skip', command=self.skip_clock,
-                                      image=self.skip_button_img, bd=0)
+                                     image=self.skip_button_img, bd=0)
         self.skip_button.grid(row=1, column=1)
 
         self.reset_button = tk.Button(self.grid_layout, text='Reset', command=self.reset_clock,
-                                       image=self.reset_button_img, bd=0)
+                                      image=self.reset_button_img, bd=0)
         self.reset_button.grid(row=1, column=2)
 
         self.finish_button = tk.Button(self.grid_layout, text='Finish', command=self.finish_task,
-                                        image=self.finish_button_image, bd=0)
+                                       image=self.finish_button_image, bd=0)
         self.finish_button.grid(row=1, column=3)
-
-        self.pomodoro_counter_label = ttk.Label(self.grid_layout, text='Pomodoros: 0', font=('Ubuntu', 16))
-        self.pomodoro_counter_label.grid(row=2, column=0, columnspan=4, pady=10)
 
         self.pomodoros = 0
         self.skipped = False
@@ -123,7 +147,7 @@ class PomodoroTimer:
                 var = tk.StringVar(value=choice)
                 cb = tk.Checkbutton(self.checklist_box, var=var, text=choice,
                                     onvalue=choice, offvalue="",
-                                    anchor="w", width=0, background=self.checklist_box.cget("background"),
+                                    anchor="w", width=0, background='#fefaff',
                                     relief="flat", highlightthickness=0
                                     )
                 cb.pack(side="top", fill="x", anchor="w")
@@ -274,9 +298,9 @@ class PomodoroTimer:
         self.w['menu'].delete(0, 'end')
 
         self.w.destroy()
-        self.w = ttk.OptionMenu(self.grid_layout, self.variable, self.tasks_to_work_on[0], *self.tasks_to_work_on,
-                                command=self.callback)
-        self.w.grid(row=0, column=0, columnspan=4, pady=10)
+        self.w = ttk.OptionMenu(self.tab1, self.variable, self.tasks_to_work_on[0], *self.tasks_to_work_on,
+                                command=self.callback, style='my.TMenubutton')
+        self.w.pack(pady=20)
 
         self.display_checklist()
 
