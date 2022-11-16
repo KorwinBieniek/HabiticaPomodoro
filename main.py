@@ -47,13 +47,13 @@ class PomodoroTimer:
         self.var.trace_add('write', self.change_pomodoro_timer)
 
         self.change_time_grid = ttk.Frame(self.tab1)
-        self.change_time_grid.pack(pady=10)
+        #self.change_time_grid.pack(pady=10)
 
         labelDir = tk.Label(self.change_time_grid, text='Enter Pomodoro duration (in minutes)', height=1)
         # labelDir.pack(side=tk.LEFT, padx=5)
 
         self.change_time = ttk.Entry(self.change_time_grid, textvariable=self.var, width=2, font=("Roboto", 20, "bold"))
-        # self.change_time.pack(side=tk.LEFT)
+        self.change_time.pack(side=tk.LEFT)
 
         # self.pomodoro_counter_label.grid(row=2, column=0, columnspan=4, pady=10)
         canvas = tk.Canvas(self.tab1, bg="white", width=250, height=250, highlightthickness=0, background='#fefaff')
@@ -107,26 +107,22 @@ class PomodoroTimer:
         self.tabs.add(self.tab2, text='Short Break')
         self.tabs.add(self.tab3, text='Long Break')
 
-
-
         self.grid_layout = ttk.Frame(self.root, style="TFrame")
         self.grid_layout.pack(pady=10)
 
         self.start_button = tk.Button(self.grid_layout, text='Start', command=self.start_timer_thread,
                                       image=self.start_button_img, bd=0, background='#fefaff')
-        self.start_button.grid(row=1, column=0)
 
         self.skip_button = tk.Button(self.grid_layout, text='Skip', command=self.skip_clock,
                                      image=self.skip_button_img, bd=0, background='#fefaff')
-        self.skip_button.grid(row=1, column=1)
 
         self.reset_button = tk.Button(self.grid_layout, text='Reset', command=self.reset_clock,
                                       image=self.reset_button_img, bd=0, background='#fefaff')
-        self.reset_button.grid(row=1, column=2)
 
         self.finish_button = tk.Button(self.grid_layout, text='Finish', command=self.finish_task,
                                        image=self.finish_button_image, bd=0, background='#fefaff')
-        self.finish_button.grid(row=1, column=3)
+
+        self.start_button.grid(row=1, column=0)
 
         self.pomodoros = 0
         self.skipped = False
@@ -209,12 +205,17 @@ class PomodoroTimer:
             t.start()
             self.running = True
 
-    def start_timer(self):
+    def start_timer(self, timer_id=1):
         self.change_time.configure(state='disabled')
         self.w.configure(state='disabled')
         self.stopped = False
         self.skipped = False
-        timer_id = self.tabs.index(self.tabs.select()) + 1
+        # timer_id = self.tabs.index(self.tabs.select()) + 1
+
+        self.start_button.grid_forget()
+        self.skip_button.grid(row=1, column=1)
+        self.reset_button.grid(row=1, column=2)
+        self.finish_button.grid(row=1, column=3)
 
         try:
 
@@ -225,41 +226,43 @@ class PomodoroTimer:
 
                 if self.change_time.get() == '0':
                     raise ValueError
-                full_seconds = 60 * int(self.change_time.get())
+                full_seconds = float(60 * int(self.change_time.get()))
                 while full_seconds > 0 and not self.stopped:
                     minutes, seconds = divmod(full_seconds, 60)
-                    self.pomodoro_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
+                    self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:{round(int(seconds), 0)}')
                     self.root.update()
-                    time.sleep(1)
-                    full_seconds -= 1
+                    time.sleep(0.1)
+                    full_seconds -= 0.1
                 if not self.stopped or self.skipped:
 
                     if self.pomodoros % 4 == 0:
-                        self.tabs.select(2)
-                        self.start_timer()
-                    else:
-                        self.tabs.select(1)
-                    self.start_timer()
+                        # self.tabs.select(2)
+                        self.start_timer(3)
+                    # else:
+                    # self.tabs.select(1)
+                    self.start_timer(2)
 
             elif timer_id == 2:
-                full_seconds = 60 * 5
+                full_seconds = float(60 * 5)
                 while full_seconds > 0 and not self.stopped:
                     minutes, seconds = divmod(full_seconds, 60)
-                    self.short_break_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
+                    self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:{round(int(seconds), 0)}')
+                    self.pomodoro_counter_label.configure(text='Short Break')
                     self.root.update()
-                    time.sleep(1)
-                    full_seconds -= 1
+                    time.sleep(0.1)
+                    full_seconds -= 0.1
                 if not self.stopped or self.skipped:
                     self.tabs.select(0)
                     self.start_timer()
             elif timer_id == 3:
-                full_seconds = 60 * 15
+                full_seconds = float(60 * 15)
                 while full_seconds > 0 and not self.stopped:
                     minutes, seconds = divmod(full_seconds, 60)
-                    self.long_break_timer_label.configure(text=f'{minutes:02d}:{seconds:02d}')
+                    self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:{round(int(seconds), 0)}')
+                    self.pomodoro_counter_label.configure(text='Long Break')
                     self.root.update()
-                    time.sleep(1)
-                    full_seconds -= 1
+                    time.sleep(0.1)
+                    full_seconds -= 0.1
                 if not self.stopped or self.skipped:
                     self.tabs.select(0)
                     self.start_timer()
@@ -280,6 +283,11 @@ class PomodoroTimer:
         self.pomodoro_counter_label.config(text='#0')
         self.running = False
         self.w.configure(state='enabled')
+
+        self.start_button.grid(row=1, column=0)
+        self.reset_button.grid_forget()
+        self.skip_button.grid_forget()
+        self.finish_button.grid_forget()
 
     def skip_clock(self):
         current_tab = self.tabs.index((self.tabs.select()))
