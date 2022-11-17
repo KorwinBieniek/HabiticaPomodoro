@@ -7,11 +7,43 @@ from PIL import ImageTk, Image
 import requests
 
 
+class ScrollableFrame(tk.Frame):
+    def __init__(self, master, **kwargs):
+        tk.Frame.__init__(self, master, **kwargs)
+
+        # create a canvas object and a vertical scrollbar for scrolling it
+        self.vscrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
+        # if len(self.tasks_checklists[self.selected_task]) > 0:
+        # print('hey')
+        self.vscrollbar.pack(side='right', fill="y", expand="false")
+        self.canvas = tk.Canvas(self,
+                                bg='#fefaff', bd=0,
+                                height=100,
+                                highlightthickness=0,
+                                yscrollcommand=self.vscrollbar.set)
+        self.canvas.pack(side="left", fill="both", expand="true")
+        self.vscrollbar.config(command=self.canvas.yview)
+
+        # reset the view
+        self.canvas.xview_moveto(0)
+        self.canvas.yview_moveto(0)
+
+        # create a frame inside the canvas which will be scrolled with it
+        self.interior = tk.Frame(self.canvas, **kwargs)
+        self.canvas.create_window(0, 0, window=self.interior, anchor="nw")
+
+        self.bind('<Configure>', self.set_scrollregion)
+
+    def set_scrollregion(self, event=None):
+        """ Set the scroll region on the canvas"""
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+
+
 class PomodoroTimer:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.root.geometry('600x600')
+        self.root.geometry('600x550')
         self.root.title('Pomodoro Timer Habitica')
         self.root.tk.call('wm', 'iconphoto', self.root._w, PhotoImage(file='gui/pomodoro.png'))
         self.root.config(bg="#fefaff")
@@ -26,16 +58,17 @@ class PomodoroTimer:
         self.s.configure('TNotebook.Tab', font=('Ubuntu', 16))
         self.s.configure('TButton', font=('Ubuntu', 16))
 
-        self.tabs = ttk.Notebook(self.root)
-        self.tabs.pack(fill='both', pady=10, expand=True)
+        # self.tabs = ttk.Notebook(self.root)
+        # self.tabs.pack(fill='both', pady=10, expand=True)
 
         frame_bg = ttk.Style()
         frame_bg.configure('My.TFrame', background='#fefaff')
         frame_style = ttk.Style()
         frame_style.configure('TFrame', background='#fefaff')
-        self.tab1 = ttk.Frame(self.tabs, width=600, height=100, style='My.TFrame')
-        self.tab2 = ttk.Frame(self.tabs, width=600, height=100, style='My.TFrame')
-        self.tab3 = ttk.Frame(self.tabs, width=600, height=100, style='My.TFrame')
+        self.tab1 = ttk.Frame(self.root, width=600, height=100, style='My.TFrame')
+        self.tab1.pack()
+        # self.tab2 = ttk.Frame(self.tabs, width=600, height=100, style='My.TFrame')
+        # self.tab3 = ttk.Frame(self.tabs, width=600, height=100, style='My.TFrame')
         main_clock_style = ttk.Style()
         main_clock_style.configure("Purple.Label", foreground="#7712a8", background='#fefaff')
         pomodoros_count_style = ttk.Style()
@@ -47,7 +80,7 @@ class PomodoroTimer:
         self.var.trace_add('write', self.change_pomodoro_timer)
 
         self.change_time_grid = ttk.Frame(self.tab1)
-        #self.change_time_grid.pack(pady=10)
+        # self.change_time_grid.pack(pady=10)
 
         labelDir = tk.Label(self.change_time_grid, text='Enter Pomodoro duration (in minutes)', height=1)
         # labelDir.pack(side=tk.LEFT, padx=5)
@@ -82,11 +115,11 @@ class PomodoroTimer:
         canvas.create_window(125, 125, window=label_frame, anchor='center')
         canvas.create_window(125, 80, window=label_frame_pomodoros, anchor='center')
 
-        self.short_break_timer_label = ttk.Label(self.tab2, text='05:00', font=('Roboto', 48))
-        self.short_break_timer_label.pack(pady=20)
+        # self.short_break_timer_label = ttk.Label(self.tab2, text='05:00', font=('Roboto', 48))
+        # self.short_break_timer_label.pack(pady=20)
 
-        self.long_break_timer_label = ttk.Label(self.tab3, text='15:00', font=('Roboto', 48))
-        self.long_break_timer_label.pack(pady=20)
+        # self.long_break_timer_label = ttk.Label(self.tab3, text='15:00', font=('Roboto', 48))
+        # self.long_break_timer_label.pack(pady=20)
 
         # Get and display Habitica tasks
         self.variable = tk.StringVar(self.root)
@@ -100,12 +133,13 @@ class PomodoroTimer:
         self.w.pack(pady=20)
 
         self.checklist_box = ttk.Frame(self.tab1, style="TFrame")
-        self.display_checklist()
-        self.checklist_box.pack()
+        # self.display_checklist()
+        # self.checklist_box.pack()
 
-        self.tabs.add(self.tab1, text='Pomodoro')
-        self.tabs.add(self.tab2, text='Short Break')
-        self.tabs.add(self.tab3, text='Long Break')
+        self.checkbox_pane = ScrollableFrame(self.tab1, bg='#fefaff')
+        self.display_checklist()
+        # if len(self.tasks_checklists[self.selected_task]) > 0:
+        print(len(self.tasks_checklists[self.selected_task]))
 
         self.grid_layout = ttk.Frame(self.root, style="TFrame")
         self.grid_layout.pack(pady=10)
@@ -140,21 +174,30 @@ class PomodoroTimer:
 
     def display_checklist(self):
 
-        for widget in self.checklist_box.winfo_children():
+        for widget in self.checkbox_pane.interior.winfo_children():
             widget.destroy()
 
         values = [key for key in self.tasks_checklists if key.startswith('DAILY')]
         if self.selected_task in values:
-            # value = self.selected_task[7:] if self.selected_task.startswith('DAILY') else self.selected_task[6:]
 
-            for choice in self.tasks_checklists[self.selected_task]:
+            # value = self.selected_task[7:] if self.selected_task.startswith('DAILY') else self.selected_task[6:]
+            # for x in range(1, 20):
+            #     tk.Checkbutton(self.checkbox_pane.interior, text="hello world! %s" % x).grid(row=x, column=0)
+
+            for choice, x in zip(self.tasks_checklists[self.selected_task],
+                                 range(0, len(self.tasks_checklists[self.selected_task]))):
                 var = tk.StringVar(value=choice)
-                cb = tk.Checkbutton(self.checklist_box, var=var, text=choice,
+                cb = tk.Checkbutton(self.checkbox_pane.interior, var=var, text=choice,
                                     onvalue=choice, offvalue="",
                                     anchor="w", width=0, background='#fefaff',
                                     relief="flat", highlightthickness=0
                                     )
-                cb.pack(side="top", fill="x", anchor="w")
+                # cb.pack(side="top", anchor="w")
+                cb.grid(row=x, column=0, sticky='w')
+        if len(self.tasks_checklists[self.selected_task]) > 0:
+            self.checkbox_pane.pack(expand="true", fill="both")
+        else:
+            self.checkbox_pane.pack_forget()
 
     def callback(self, selection):
         self.selected_task = self.variable.get()
@@ -278,8 +321,8 @@ class PomodoroTimer:
         self.skipped = False
         self.pomodoros = 0
         self.pomodoro_timer_label.config(text=f'{self.change_time.get()}:00')
-        self.short_break_timer_label.config(text='05:00')
-        self.long_break_timer_label.config(text='15:00')
+        # self.short_break_timer_label.config(text='05:00')
+        # self.long_break_timer_label.config(text='15:00')
         self.pomodoro_counter_label.config(text='#0')
         self.running = False
         self.w.configure(state='enabled')
@@ -290,13 +333,13 @@ class PomodoroTimer:
         self.finish_button.grid_forget()
 
     def skip_clock(self):
-        current_tab = self.tabs.index((self.tabs.select()))
-        if current_tab == 0:
-            self.pomodoro_timer_label.config(text=f'{self.change_time.get()}:00')
-        elif current_tab == 1:
-            self.short_break_timer_label.config(text='05:00')
-        elif current_tab == 2:
-            self.long_break_timer_label.config(text='15:00')
+        # current_tab = self.tabs.index((self.tabs.select()))
+        # if current_tab == 0:
+        self.pomodoro_timer_label.config(text=f'{self.change_time.get()}:00')
+        # elif current_tab == 1:
+        # self.short_break_timer_label.config(text='05:00')
+        # elif current_tab == 2:
+        # self.long_break_timer_label.config(text='15:00')
 
         self.stopped = True
         self.skipped = True
