@@ -45,6 +45,7 @@ class PomodoroTimer:
 
     def move_app(self, e):
         self.root.geometry(f'+{e.x_root}+{e.y_root}')
+
     def __init__(self):
         self.root = tk.Tk()
         self.root.geometry('600x600')
@@ -52,17 +53,14 @@ class PomodoroTimer:
         self.root.tk.call('wm', 'iconphoto', self.root._w, PhotoImage(file='gui/pomodoro.png'))
         self.root.config(bg="#282828")
         self.root.overrideredirect(1)
-        #self.root.wm_attributes("-transparentcolor", "grey")
-        #self.root.bind("<B1-Motion>", self.move_app)
+        # self.root.wm_attributes("-transparentcolor", "grey")
+        # self.root.bind("<B1-Motion>", self.move_app)
 
         self.root.attributes('-topmost', True)
 
         # frame_photo = PhotoImage(file='gui/Pomodoro frame dark.png')
         # frame_label = tk.Label(self.root, border=0, bg='grey', image=frame_photo)
         # frame_label.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-
-
 
         self.start_button_img = PhotoImage(file='gui/Start light.png')
         self.reset_button_img = PhotoImage(file='gui/Restart light.png')
@@ -94,16 +92,23 @@ class PomodoroTimer:
         self.tab1.pack()
         self.tab1.bind("<B1-Motion>", self.move_app)
 
-
         main_clock_style = ttk.Style()
         main_clock_style.configure("Purple.Label", foreground="#e6e6e6", background='#282828')
         pomodoros_count_style = ttk.Style()
         pomodoros_count_style.configure("Black.Label", foreground="#e6e6e6", background='#282828')
 
         # ENTRY TO CHANGE POMODORO TIME
-        self.var = tk.StringVar()
-        self.var.set('25')
-        self.var.trace_add('write', self.change_pomodoro_timer)
+        self.pomodoro_session_time = tk.StringVar()
+        self.pomodoro_session_time.set('25')
+        self.pomodoro_session_time.trace_add('write', self.change_pomodoro_timer)
+
+        self.pomodoro_short_break_time = tk.StringVar()
+        self.pomodoro_short_break_time.set('5')
+        self.pomodoro_short_break_time.trace_add('write', self.change_pomodoro_timer)
+
+        self.pomodoro_long_break_time = tk.StringVar()
+        self.pomodoro_long_break_time.set('15')
+        self.pomodoro_long_break_time.trace_add('write', self.change_pomodoro_timer)
 
         self.open_configuration()
         self.new_window.withdraw()
@@ -179,8 +184,7 @@ class PomodoroTimer:
                                        image=self.finish_button_image, bd=0, background='#282828')
 
         self.stop_button = tk.Button(self.grid_layout, text='Finish',
-                                       image=self.stop_button_img, bd=0, background='#282828')
-
+                                     image=self.stop_button_img, bd=0, background='#282828')
 
         self.start_button.grid(row=1, column=0)
 
@@ -189,57 +193,66 @@ class PomodoroTimer:
         self.stopped = False
         self.running = False
 
-
         self.root.mainloop()
 
     def open_configuration(self):
 
         self.new_window = tk.Toplevel(self.root)
         self.new_window.title("Configuration")
-        self.new_window.geometry("300x200")
+        self.new_window.geometry("300x210")
+        self.new_window.config(bg="#282828")
+        #self.new_window.overrideredirect(1)
 
         self.change_time_grid = ttk.Frame(self.new_window)
         self.change_time_grid.pack(pady=10)
 
-
-        #label_change_pomodoro_duration.pack(side=tk.LEFT, padx=5)
+        # label_change_pomodoro_duration.pack(side=tk.LEFT, padx=5)
         self.label_change_pomodoro_duration = tk.Label(self.change_time_grid,
-                                                       text='Enter Pomodoro duration (in minutes)', height=1)
+                                                       text='Enter Pomodoro duration (in minutes)', height=1,
+                                                       background='#282828', foreground='#e6e6e6')
         self.label_change_pomodoro_duration.grid(row=0, column=0)
 
-        #self.change_pomodoro_time.pack(side=tk.LEFT)
-        self.change_pomodoro_time = ttk.Entry(self.change_time_grid, textvariable=self.var, width=2,
-                                              font=("Roboto", 20, "bold"))
+        # self.change_pomodoro_time.pack(side=tk.LEFT)
+        self.change_pomodoro_time = tk.Entry(self.change_time_grid, textvariable=self.pomodoro_session_time, width=2,
+                                              font=("Roboto", 20, "bold"),
+                                             bd=0, background='#282828', foreground='#e6e6e6')
         self.change_pomodoro_time.grid(row=0, column=1)
 
-        #label_change_pomodoro_duration.pack(side=tk.LEFT, padx=5)
+        # label_change_pomodoro_duration.pack(side=tk.LEFT, padx=5)
         self.label_change_short_break_duration = tk.Label(self.change_time_grid,
-                                                          text='Enter Short Break duration (in minutes)', height=1)
+                                                          text='Enter Short Break duration (in minutes)', height=1,
+                                                          background='#282828', foreground='#e6e6e6')
         self.label_change_short_break_duration.grid(row=1, column=0)
 
-        #self.change_short_break_time.pack(side=tk.LEFT)
-        self.change_short_break_time = ttk.Entry(self.change_time_grid, textvariable=self.var, width=2,
-                                                 font=("Roboto", 20, "bold"))
+        # self.change_short_break_time.pack(side=tk.LEFT)
+        self.change_short_break_time = tk.Entry(self.change_time_grid, textvariable=self.pomodoro_short_break_time,
+                                                 width=2,
+                                                 font=("Roboto", 20, "bold"),
+                                                bd=0, background='#282828', foreground='#e6e6e6')
         self.change_short_break_time.grid(row=1, column=1)
 
-        #label_change_pomodoro_duration.pack(side=tk.LEFT, padx=5)
+        # label_change_pomodoro_duration.pack(side=tk.LEFT, padx=5)
         self.label_change_long_break_duration = tk.Label(self.change_time_grid,
-                                                         text='Enter Long Break duration (in minutes)', height=1)
+                                                         text='Enter Long Break duration (in minutes)', height=1,
+                                                         background='#282828', foreground='#e6e6e6')
         self.label_change_long_break_duration.grid(row=2, column=0)
 
-        #self.change_long_break_time.pack(side=tk.LEFT)
-        self.change_long_break_time = ttk.Entry(self.change_time_grid, textvariable=self.var, width=2,
-                                                font=("Roboto", 20, "bold"))
+
+        self.change_long_break_time = tk.Entry(self.change_time_grid, textvariable=self.pomodoro_long_break_time,
+                                                width=2,
+                                                font=("Roboto", 20, "bold"),
+                                                bd=0, background='#282828', foreground='#e6e6e6')
         self.change_long_break_time.grid(row=2, column=1)
 
-        B = tk.Button(self.new_window, text="Done", command=self.new_window.withdraw)
+        B = tk.Button(self.new_window, text="Done", command=self.new_window.withdraw,
+                      image=self.finish_button_image, bd=0, background='#282828', height=200)
 
         B.pack()
 
         self.new_window.attributes('-topmost', True)
 
     def change_pomodoro_timer(self, *args):
-        self.pomodoro_timer_label.config(text=f'{self.var.get()}:00')
+        self.pomodoro_timer_label.config(text=f'{self.pomodoro_session_time.get()}:00')
 
     def wrong_pomodoro_timer_value(self):
         messagebox.showerror('Wrong Timer Value', 'Error: Please enter proper value (in minutes)')
@@ -336,7 +349,6 @@ class PomodoroTimer:
         self.reset_button.grid(row=1, column=3)
         self.finish_button.grid(row=1, column=4)
 
-
         try:
 
             if timer_id == 1:
@@ -366,7 +378,7 @@ class PomodoroTimer:
                     self.start_timer(2)
 
             elif timer_id == 2:
-                full_seconds = float(60 * 5)
+                full_seconds = float(60 * int(self.change_short_break_time.get()))
                 while full_seconds > 0 and not self.stopped:
                     minutes, seconds = divmod(full_seconds, 60)
                     if seconds < 10:
@@ -378,10 +390,10 @@ class PomodoroTimer:
                     time.sleep(0.1)
                     full_seconds -= 0.1
                 if not self.stopped or self.skipped:
-                    self.tabs.select(0)
+                    #self.tabs.select(0)
                     self.start_timer()
             elif timer_id == 3:
-                full_seconds = float(60 * 15)
+                full_seconds = float(60 * int(self.change_long_break_time.get()))
                 while full_seconds > 0 and not self.stopped:
                     minutes, seconds = divmod(full_seconds, 60)
                     self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:{round(int(seconds), 0)}')
@@ -390,7 +402,7 @@ class PomodoroTimer:
                     time.sleep(0.1)
                     full_seconds -= 0.1
                 if not self.stopped or self.skipped:
-                    self.tabs.select(0)
+                    #self.tabs.select(0)
                     self.start_timer()
             else:
                 print('Invalid timer ID')
