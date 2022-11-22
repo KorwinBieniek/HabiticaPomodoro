@@ -1,3 +1,6 @@
+'''
+
+'''
 import time
 import threading
 import tkinter as tk
@@ -10,11 +13,22 @@ from scrollable_frame import ScrollableFrame
 
 
 class PomodoroTimer:
+    '''
+
+    '''
 
     def move_app(self, e):
+        '''
+
+        :param e:
+        :return:
+        '''
         self.root.geometry(f'+{e.x_root}+{e.y_root}')
 
     def __init__(self):
+        '''
+
+        '''
         self.root = tk.Tk()
         self.root.geometry('600x600')
         self.root.title('Pomodoro Timer Habitica')
@@ -138,7 +152,9 @@ class PomodoroTimer:
         self.root.mainloop()
 
     def open_configuration(self):
+        """
 
+        """
         self.new_window = tk.Toplevel(self.root)
         self.new_window.title("Configuration")
         self.new_window.geometry("300x210")
@@ -187,13 +203,22 @@ class PomodoroTimer:
         self.new_window.attributes('-topmost', True)
 
     def change_pomodoro_timer(self, *args):
+        """
+
+        :param args:
+        """
         self.pomodoro_timer_label.config(text=f'{self.pomodoro_session_time.get()}:00')
 
     def wrong_pomodoro_timer_value(self):
+        """
+
+        """
         messagebox.showerror('Wrong Timer Value', 'Error: Please enter proper value (in minutes)')
 
     def display_checklist(self):
+        """
 
+        """
         for widget in self.checkbox_pane.interior.winfo_children():
             widget.destroy()
 
@@ -220,11 +245,18 @@ class PomodoroTimer:
             self.checkbox_pane.pack_forget()
 
     def callback(self, selection):
+        """
+
+        :param selection:
+        """
         self.selected_task = self.variable.get()
 
         self.display_checklist()
 
     def get_habitica_tasks(self):
+        """
+
+        """
         self.tasks_to_work_on = []
         self.tasks_ids = []
         self.tasks_checklists = {}
@@ -259,12 +291,21 @@ class PomodoroTimer:
         self.selected_task = self.tasks_to_work_on[0]
 
     def start_timer_thread(self):
+        '''
+
+        :return:
+        '''
         if not self.running:
             t = threading.Thread(target=self.start_timer)
             t.start()
             self.running = True
 
     def start_timer(self, timer_id=1):
+        '''
+
+        :param timer_id:
+        :return:
+        '''
         self.change_pomodoro_timer()
         self.change_pomodoro_time.configure(state='disabled')
         self.change_short_break_time.configure(state='disabled')
@@ -337,6 +378,10 @@ class PomodoroTimer:
             self.reset_clock()
 
     def reset_clock(self):
+        '''
+
+        :return:
+        '''
         self.change_pomodoro_time.configure(state='normal')
         self.change_short_break_time.configure(state='normal')
         self.change_long_break_time.configure(state='normal')
@@ -355,12 +400,20 @@ class PomodoroTimer:
         self.stop_button.grid_forget()
 
     def skip_clock(self):
+        '''
+
+        :return:
+        '''
         self.pomodoro_timer_label.config(text=f'{self.change_pomodoro_time.get()}:00')
 
         self.stopped = True
         self.skipped = True
 
     def finish_task(self):
+        '''
+
+        :return:
+        '''
         task_index = self.tasks_to_work_on.index(self.selected_task)
         task_id_to_finish = self.tasks_ids[task_index]
 

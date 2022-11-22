@@ -1,8 +1,20 @@
+'''
+
+'''
 import tkinter as tk
 
 
 class ScrollableFrame(tk.Frame):
+    '''
+
+    '''
+
     def __init__(self, master, **kwargs):
+        '''
+
+        :param master:
+        :param kwargs:
+        '''
         tk.Frame.__init__(self, master, **kwargs)
 
         # create a canvas object and a vertical scrollbar for scrolling it
@@ -29,5 +41,10 @@ class ScrollableFrame(tk.Frame):
         # self.bind('<Configure>', self.set_scrollregion)
 
     def set_scrollregion(self, event=None):
-        """ Set the scroll region on the canvas"""
+        '''
+        Set the scroll region on the canvas
+
+        :param event:
+        :return:
+        '''
         self.canvas.configure(scrollregion=self.canvas.bbox('all'))
