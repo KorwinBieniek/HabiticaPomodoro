@@ -27,9 +27,12 @@ Requires 'api_keys.txt' in the same folder as the program with two lines:
 2. API_KEY
 Those can be found on Habitica > Settings > API
 
-Old GUI <br>
+First Version <br>
 ![image](https://user-images.githubusercontent.com/43883367/201315352-8c070163-e0a7-45ff-b8e1-09b3fd9f6aae.png)
-<br> New GUI <br>
+<br> Second Version <br>
 ![image](https://user-images.githubusercontent.com/43883367/202536472-f0b21827-0275-4bcd-a23c-4c764b0fc272.png)
+<br> Final Version <br>
+![image](https://user-images.githubusercontent.com/43883367/203546868-49c8cf86-4df1-4d0b-9f4f-346555d6b6a4.png)
+
 
 
