@@ -139,7 +139,7 @@ class PomodoroTimer:
         self.finish_button = tk.Button(self.grid_layout, text='Finish', command=self.finish_task,
                                        image=self.finish_button_image, bd=0, background='#282828')
 
-        self.stop_button = tk.Button(self.grid_layout, text='Finish',
+        self.stop_button = tk.Button(self.grid_layout, text='Pause', command=self.pause_clock,
                                      image=self.stop_button_img, bd=0, background='#282828')
 
         self.start_button.grid(row=1, column=0)
@@ -148,6 +148,7 @@ class PomodoroTimer:
         self.skipped = False
         self.stopped = False
         self.running = False
+        self.paused = False
 
         self.root.mainloop()
 
@@ -300,12 +301,13 @@ class PomodoroTimer:
             t.start()
             self.running = True
 
-    def start_timer(self, timer_id=1):
+    def start_timer(self, timer_id=1, paused=False):
         '''
 
         :param timer_id:
         :return:
         '''
+        time_val = self.change_pomodoro_time.get()
         self.change_pomodoro_timer()
         self.change_pomodoro_time.configure(state='disabled')
         self.change_short_break_time.configure(state='disabled')
@@ -329,16 +331,20 @@ class PomodoroTimer:
 
                 if self.change_pomodoro_time.get() == '0':
                     raise ValueError
-                full_seconds = float(60 * int(self.change_pomodoro_time.get()))
-                while full_seconds > 0 and not self.stopped:
-                    minutes, seconds = divmod(full_seconds, 60)
+                if not paused:
+                    self.full_seconds = float(60 * int(time_val))
+                else:
+                    self.full_seconds = self.full_seconds
+                while self.full_seconds > 0 and not self.stopped:
+                    minutes, seconds = divmod(self.full_seconds, 60)
                     if seconds < 10:
                         self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:0{round(int(seconds), 0)}')
                     else:
                         self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:{round(int(seconds), 0)}')
                     self.root.update()
-                    time.sleep(0.1)
-                    full_seconds -= 0.1
+                    if not self.paused:
+                        time.sleep(0.1)
+                        self.full_seconds -= 0.1
                 if not self.stopped or self.skipped:
 
                     if self.pomodoros % 4 == 0:
@@ -346,9 +352,9 @@ class PomodoroTimer:
                     self.start_timer(2)
 
             elif timer_id == 2:
-                full_seconds = float(60 * int(self.change_short_break_time.get()))
-                while full_seconds > 0 and not self.stopped:
-                    minutes, seconds = divmod(full_seconds, 60)
+                self.full_seconds = float(60 * int(time_val))
+                while self.full_seconds > 0 and not self.stopped:
+                    minutes, seconds = divmod(self.full_seconds, 60)
                     if seconds < 10:
                         self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:0{round(int(seconds), 0)}')
                     else:
@@ -356,18 +362,18 @@ class PomodoroTimer:
                     self.pomodoro_counter_label.configure(text='Short Break')
                     self.root.update()
                     time.sleep(0.1)
-                    full_seconds -= 0.1
+                    self.full_seconds -= 0.1
                 if not self.stopped or self.skipped:
                     self.start_timer()
             elif timer_id == 3:
-                full_seconds = float(60 * int(self.change_long_break_time.get()))
-                while full_seconds > 0 and not self.stopped:
-                    minutes, seconds = divmod(full_seconds, 60)
+                self.full_seconds = float(60 * int(time_val))
+                while self.full_seconds > 0 and not self.stopped:
+                    minutes, seconds = divmod(self.full_seconds, 60)
                     self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:{round(int(seconds), 0)}')
                     self.pomodoro_counter_label.configure(text='Long Break')
                     self.root.update()
                     time.sleep(0.1)
-                    full_seconds -= 0.1
+                    self.full_seconds -= 0.1
                 if not self.stopped or self.skipped:
                     self.start_timer()
             else:
@@ -408,6 +414,12 @@ class PomodoroTimer:
 
         self.stopped = True
         self.skipped = True
+
+    def pause_clock(self):
+        self.paused = True if self.paused == False else False
+        if not self.paused:
+            self.pomodoros -= 1
+            self.start_timer(paused=True)
 
     def finish_task(self):
         '''
