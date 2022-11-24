@@ -43,6 +43,7 @@ class PomodoroTimer:
         self.stop_button_img = PhotoImage(file='gui/Pouse light.png')
         self.finish_button_image = PhotoImage(file='gui/Finish light.png')
         self.open_config_button = PhotoImage(file='gui/Settings light.png')
+        self.alt_stop_button_img = PhotoImage(file='gui/Start.png')
 
         self.s = ttk.Style()
         self.s.configure('TNotebook.Tab', font=('Ubuntu', 16))
@@ -128,19 +129,19 @@ class PomodoroTimer:
         self.grid_layout.pack(pady=10)
 
         self.start_button = tk.Button(self.grid_layout, text='Start', command=self.start_timer_thread,
-                                      image=self.start_button_img, bd=0, background='#282828')
+                                      image=self.start_button_img, bd=0, background='#282828', activebackground='#282828')
 
         self.skip_button = tk.Button(self.grid_layout, text='Skip', command=self.skip_clock,
-                                     image=self.skip_button_img, bd=0, background='#282828')
+                                     image=self.skip_button_img, bd=0, background='#282828', activebackground='#282828')
 
         self.reset_button = tk.Button(self.grid_layout, text='Reset', command=self.reset_clock,
-                                      image=self.reset_button_img, bd=0, background='#282828')
+                                      image=self.reset_button_img, bd=0, background='#282828', activebackground='#282828')
 
         self.finish_button = tk.Button(self.grid_layout, text='Finish', command=self.finish_task,
-                                       image=self.finish_button_image, bd=0, background='#282828')
+                                       image=self.finish_button_image, bd=0, background='#282828', activebackground='#282828')
 
         self.stop_button = tk.Button(self.grid_layout, text='Pause', command=self.pause_clock,
-                                     image=self.stop_button_img, bd=0, background='#282828')
+                                     image=self.stop_button_img, bd=0, background='#282828', activebackground='#282828')
 
         self.start_button.grid(row=1, column=0)
 
@@ -417,9 +418,14 @@ class PomodoroTimer:
 
     def pause_clock(self):
         self.paused = True if self.paused == False else False
+        if self.paused:
+            self.stop_button.configure(image=self.alt_stop_button_img)
+        else:
+            self.stop_button.configure(image=self.stop_button_img)
         if not self.paused:
             self.pomodoros -= 1
             self.start_timer(paused=True)
+
 
     def finish_task(self):
         '''
