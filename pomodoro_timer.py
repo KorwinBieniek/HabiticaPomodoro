@@ -1,5 +1,6 @@
 '''
-
+Module representing Pomodoro timer class, that allows the user
+to benefit from customized Pomodoro app connected to Habitica tasks
 '''
 import time
 import threading
@@ -14,20 +15,12 @@ from scrollable_frame import ScrollableFrame
 
 class PomodoroTimer:
     '''
-
+    Class that represents Pomodoro Timer that allows to count time for specific tasks taken from Habitica
     '''
-
-    def move_app(self, e):
-        '''
-
-        :param e:
-        :return:
-        '''
-        self.root.geometry(f'+{e.x_root}+{e.y_root}')
 
     def __init__(self):
         '''
-
+        Constructor that creates all GUI elements for the timer
         '''
         self.root = tk.Tk()
         self.root.geometry('600x600')
@@ -129,16 +122,19 @@ class PomodoroTimer:
         self.grid_layout.pack(pady=10)
 
         self.start_button = tk.Button(self.grid_layout, text='Start', command=self.start_timer_thread,
-                                      image=self.start_button_img, bd=0, background='#282828', activebackground='#282828')
+                                      image=self.start_button_img, bd=0, background='#282828',
+                                      activebackground='#282828')
 
         self.skip_button = tk.Button(self.grid_layout, text='Skip', command=self.skip_clock,
                                      image=self.skip_button_img, bd=0, background='#282828', activebackground='#282828')
 
         self.reset_button = tk.Button(self.grid_layout, text='Reset', command=self.reset_clock,
-                                      image=self.reset_button_img, bd=0, background='#282828', activebackground='#282828')
+                                      image=self.reset_button_img, bd=0, background='#282828',
+                                      activebackground='#282828')
 
         self.finish_button = tk.Button(self.grid_layout, text='Finish', command=self.finish_task,
-                                       image=self.finish_button_image, bd=0, background='#282828', activebackground='#282828')
+                                       image=self.finish_button_image, bd=0, background='#282828',
+                                       activebackground='#282828')
 
         self.stop_button = tk.Button(self.grid_layout, text='Pause', command=self.pause_clock,
                                      image=self.stop_button_img, bd=0, background='#282828', activebackground='#282828')
@@ -155,7 +151,7 @@ class PomodoroTimer:
 
     def open_configuration(self):
         """
-
+        Opens configuration window to set Pomodoro and break times, initializes all elements there
         """
         self.new_window = tk.Toplevel(self.root)
         self.new_window.title("Configuration")
@@ -206,20 +202,20 @@ class PomodoroTimer:
 
     def change_pomodoro_timer(self, *args):
         """
-
-        :param args:
+        Allows to set Pomodoro duration
+        :param args: values input in entry boxes
         """
         self.pomodoro_timer_label.config(text=f'{self.pomodoro_session_time.get()}:00')
 
     def wrong_pomodoro_timer_value(self):
         """
-
+        Displays error box when wrong time value is input
         """
         messagebox.showerror('Wrong Timer Value', 'Error: Please enter proper value (in minutes)')
 
     def display_checklist(self):
         """
-
+        Displays subtasks for a specific Habitica task
         """
         for widget in self.checkbox_pane.interior.winfo_children():
             widget.destroy()
@@ -246,10 +242,9 @@ class PomodoroTimer:
         else:
             self.checkbox_pane.pack_forget()
 
-    def callback(self, selection):
+    def callback(self):
         """
-
-        :param selection:
+        Allows to choose a task from the list
         """
         self.selected_task = self.variable.get()
 
@@ -257,7 +252,7 @@ class PomodoroTimer:
 
     def get_habitica_tasks(self):
         """
-
+        Gets all tasks from Habitica from Daily and To-Do list categories
         """
         self.tasks_to_work_on = []
         self.tasks_ids = []
@@ -294,8 +289,7 @@ class PomodoroTimer:
 
     def start_timer_thread(self):
         '''
-
-        :return:
+        Starts timer in multithreaded environment
         '''
         if not self.running:
             t = threading.Thread(target=self.start_timer)
@@ -304,9 +298,8 @@ class PomodoroTimer:
 
     def start_timer(self, timer_id=1, paused=False):
         '''
-
-        :param timer_id:
-        :return:
+        Starts specific timer (Pomodoro, short break, long break) according to the current
+        :param timer_id: ID to verify which Pomodoro phase should be running right now
         '''
         time_val = self.change_pomodoro_time.get()
         self.change_pomodoro_timer()
@@ -386,8 +379,7 @@ class PomodoroTimer:
 
     def reset_clock(self):
         '''
-
-        :return:
+        Resets clock to the initial state
         '''
         self.change_pomodoro_time.configure(state='normal')
         self.change_short_break_time.configure(state='normal')
@@ -408,8 +400,7 @@ class PomodoroTimer:
 
     def skip_clock(self):
         '''
-
-        :return:
+        Skips the clock to the next phase
         '''
         self.pomodoro_timer_label.config(text=f'{self.change_pomodoro_time.get()}:00')
 
@@ -417,6 +408,9 @@ class PomodoroTimer:
         self.skipped = True
 
     def pause_clock(self):
+        '''
+        Pauses/unpauses the clock
+        '''
         self.paused = True if self.paused == False else False
         if self.paused:
             self.stop_button.configure(image=self.alt_stop_button_img)
@@ -426,18 +420,19 @@ class PomodoroTimer:
             self.pomodoros -= 1
             self.start_timer(paused=True)
 
-
     def finish_task(self):
         '''
-
-        :return:
+        Checks the task as completed on the Habitica site
         '''
         task_index = self.tasks_to_work_on.index(self.selected_task)
         task_id_to_finish = self.tasks_ids[task_index]
 
         get_url = f'https://habitica.com/api/v3/tasks/{task_id_to_finish}/score/up'
-        headers = {'x-api-user': f'6fb0bdb9-2db9-4bbb-be77-b55a9ad3d339',
-                   'x-api-key': f'2b4d0dbf-99a9-4436-8045-4f081a62f002'}
+        with open('api_keys.txt', 'r') as file:
+            api_user, api_key = file.read().splitlines()
+
+        self.headers = {'x-api-user': f'{api_user}',
+                        'x-api-key': f'{api_key}'}
         requests.post(get_url, headers=self.headers)
 
         self.reset_clock()

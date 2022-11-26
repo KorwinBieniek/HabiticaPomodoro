@@ -1,17 +1,17 @@
 '''
-
+Module containing a frame class with a scroll option
 '''
 import tkinter as tk
 
 
 class ScrollableFrame(tk.Frame):
     '''
-
+    Frame class that allows to scroll within it to hold Habitica subtasks
     '''
 
     def __init__(self, master, **kwargs):
         '''
-
+        Creates a frame with Scrollbar inside
         :param master:
         :param kwargs:
         '''
@@ -19,8 +19,6 @@ class ScrollableFrame(tk.Frame):
 
         # create a canvas object and a vertical scrollbar for scrolling it
         self.vscrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
-        # if len(self.tasks_checklists[self.selected_task]) > 0:
-        # print('hey')
         self.vscrollbar.pack(side='right', fill="y", expand="false")
         self.canvas = tk.Canvas(self,
                                 bg='#282828', bd=0,
@@ -38,7 +36,6 @@ class ScrollableFrame(tk.Frame):
         self.interior = tk.Frame(self.canvas, **kwargs)
         self.canvas.create_window(0, 0, window=self.interior, anchor="nw")
 
-        # self.bind('<Configure>', self.set_scrollregion)
 
     def set_scrollregion(self, event=None):
         '''
