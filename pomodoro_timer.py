@@ -11,6 +11,7 @@ from PIL import ImageTk, Image
 import tkinter.font as font
 import requests
 from scrollable_frame import ScrollableFrame
+from dark_mode_title_bar import *
 
 
 class PomodoroTimer:
@@ -27,6 +28,14 @@ class PomodoroTimer:
         self.root.title('Pomodoro Timer Habitica')
         self.root.tk.call('wm', 'iconphoto', self.root._w, PhotoImage(file='gui/pomodoro.png'))
         self.root.config(bg="#282828")
+
+        # Adding dark mode - needs to change window size on Windows 10
+        dark_title_bar(self.root)
+        # Changes the window size
+        self.root.geometry(str(self.root.winfo_width() + 1) + "x" + str(self.root.winfo_height() + 1))
+        # Returns to original size
+        self.root.geometry(str(self.root.winfo_width() - 1) + "x" + str(self.root.winfo_height() - 1))
+
 
         self.root.attributes('-topmost', True)
 
