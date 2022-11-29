@@ -2,6 +2,11 @@
 Module representing Pomodoro timer class, that allows the user
 to benefit from customized Pomodoro app connected to Habitica tasks
 '''
+
+#TODO checklist doesnt work properly
+#TODO short break if resets after long breaks
+#TODO timer, short break and long break times are the same
+
 import time
 import threading
 import tkinter as tk
