@@ -3,8 +3,6 @@ Module representing Pomodoro timer class, that allows the user
 to benefit from customized Pomodoro app connected to Habitica tasks
 '''
 
-#TODO short break if resets after long breaks
-
 import time
 import threading
 import tkinter as tk
