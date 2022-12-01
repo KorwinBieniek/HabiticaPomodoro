@@ -357,7 +357,8 @@ class PomodoroTimer:
 
                     if self.pomodoros % 4 == 0:
                         self.start_timer(3)
-                    self.start_timer(2)
+                    else:
+                        self.start_timer(2)
 
             elif timer_id == 2:
                 self.full_seconds = float(60 * int(short_break_val))
@@ -405,7 +406,6 @@ class PomodoroTimer:
         self.pomodoro_counter_label.config(text='#0')
         self.running = False
         self.w.configure(state='enabled')
-        print(self.change_pomodoro_time.get())
 
         self.start_button.grid(row=1, column=0)
         self.reset_button.grid_forget()
