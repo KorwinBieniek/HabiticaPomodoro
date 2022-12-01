@@ -3,9 +3,7 @@ Module representing Pomodoro timer class, that allows the user
 to benefit from customized Pomodoro app connected to Habitica tasks
 '''
 
-#TODO checklist doesnt work properly
 #TODO short break if resets after long breaks
-#TODO timer, short break and long break times are the same
 
 import time
 import threading
@@ -123,7 +121,7 @@ class PomodoroTimer:
         option_menu_style.configure('my.TMenubutton', foreground='#e6e6e6', font=('Roboto', 22), background='#282828')
 
         self.w = ttk.OptionMenu(self.tab1, self.variable, self.tasks_to_work_on[0], *self.tasks_to_work_on,
-                                command=self.callback, style='my.TMenubutton')
+                                command=self.get_task_checklist, style='my.TMenubutton')
 
         self.w.pack(pady=20)
 
@@ -251,12 +249,12 @@ class PomodoroTimer:
 
                 # cb.pack(side="top", anchor="w")
                 cb.grid(row=x, column=0, sticky='w')
-        if len(self.tasks_checklists[self.selected_task]) > 0:
+        if self.selected_task in values and len(self.tasks_checklists[self.selected_task]) > 0:
             self.checkbox_pane.pack(expand="true", fill="both")
         else:
             self.checkbox_pane.pack_forget()
 
-    def callback(self):
+    def get_task_checklist(self, x):
         """
         Allows to choose a task from the list
         """
@@ -315,7 +313,9 @@ class PomodoroTimer:
         Starts specific timer (Pomodoro, short break, long break) according to the current
         :param timer_id: ID to verify which Pomodoro phase should be running right now
         '''
-        time_val = self.change_pomodoro_time.get()
+        pomodoro_val = self.change_pomodoro_time.get()
+        short_break_val = self.change_short_break_time.get()
+        long_break_val = self.change_long_break_time.get()
         self.change_pomodoro_timer()
         self.change_pomodoro_time.configure(state='disabled')
         self.change_short_break_time.configure(state='disabled')
@@ -340,7 +340,7 @@ class PomodoroTimer:
                 if self.change_pomodoro_time.get() == '0':
                     raise ValueError
                 if not paused:
-                    self.full_seconds = float(60 * int(time_val))
+                    self.full_seconds = float(60 * int(pomodoro_val))
                 else:
                     self.full_seconds = self.full_seconds
                 while self.full_seconds > 0 and not self.stopped:
@@ -360,7 +360,7 @@ class PomodoroTimer:
                     self.start_timer(2)
 
             elif timer_id == 2:
-                self.full_seconds = float(60 * int(time_val))
+                self.full_seconds = float(60 * int(short_break_val))
                 while self.full_seconds > 0 and not self.stopped:
                     minutes, seconds = divmod(self.full_seconds, 60)
                     if seconds < 10:
@@ -374,7 +374,7 @@ class PomodoroTimer:
                 if not self.stopped or self.skipped:
                     self.start_timer()
             elif timer_id == 3:
-                self.full_seconds = float(60 * int(time_val))
+                self.full_seconds = float(60 * int(long_break_val))
                 while self.full_seconds > 0 and not self.stopped:
                     minutes, seconds = divmod(self.full_seconds, 60)
                     self.pomodoro_timer_label.configure(text=f'{round(int(minutes), 0)}:{round(int(seconds), 0)}')
@@ -405,6 +405,7 @@ class PomodoroTimer:
         self.pomodoro_counter_label.config(text='#0')
         self.running = False
         self.w.configure(state='enabled')
+        print(self.change_pomodoro_time.get())
 
         self.start_button.grid(row=1, column=0)
         self.reset_button.grid_forget()
@@ -457,8 +458,8 @@ class PomodoroTimer:
         self.w['menu'].delete(0, 'end')
 
         self.w.destroy()
-        self.w = ttk.OptionMenu(self.tab1, self.variable, self.tasks_to_work_on[0], *self.tasks_to_work_on,
-                                command=self.callback, style='my.TMenubutton')
+        self.w = tk.OptionMenu(self.tab1, self.variable, self.tasks_to_work_on[0], *self.tasks_to_work_on,
+                                command=self.get_task_checklist, style='my.TMenubutton')
         self.w.pack(pady=20)
 
         self.display_checklist()
